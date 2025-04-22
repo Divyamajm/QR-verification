@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureEntry | Event Security Verification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --white: #ffffff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7ff;
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Header Styles */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        /* Card Styles */
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .card-title-icon {
+            font-size: 1.25rem;
+        }
+        
+        /* Button Styles */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: var(--light-gray);
+            color: var(--dark);
+        }
+        
+        .btn-secondary:hover {
+            background-color: #dee2e6;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: var(--white);
+        }
+        
+        .btn-success:hover {
+            background-color: #3ab7db;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+        
+        .btn-danger:hover {
+            background-color: #e5177b;
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: var(--white);
+        }
+        
+        .btn-warning:hover {
+            background-color: #e68a19;
+            transform: translateY(-2px);
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        /* Scan Section Styles */
+        .scan-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .scan-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .scan-option {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px dashed var(--gray);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--light);
+        }
+        
+        #video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        #canvas {
+            display: none;
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .scan-box {
+            width: 70%;
+            height: 70%;
+            border: 4px solid rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            box-shadow: 0 0 0 10000px rgba(0, 0, 0, 0.5);
+        }
+        
+        .upload-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed var(--gray);
+            border-radius: 12px;
+            background-color: var(--light);
+            cursor: pointer;
+            transition: var(--transition);
+            height: 100%;
+        }
+        
+        .upload-container:hover {
+            border-color: var(--primary);
+            background-color: #e9ecef;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--gray);
+        }
+        
+        #file-input {
+            display: none;
+        }
+        
+        /* Result Section Styles */
+        .result-section {
+            display: none;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-success {
+            background-color: rgba(76, 201, 240, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+        
+        .result-warning {
+            background-color: rgba(248, 150, 30, 0.1);
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+        
+        .result-danger {
+            background-color: rgba(247, 37, 133, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .result-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .result-icon {
+            font-size: 1.25rem;
+        }
+        
+        .result-details {
+            margin-top: 0.5rem;
+        }
+        
+        /* Verification History Styles */
+        .verification-history {
+            margin-top: 2rem;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            background-color: var(--white);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        
+        .status-valid {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: var(--success);
+        }
+        
+        .status-duplicate {
+            background-color: rgba(248, 150, 30, 0.2);
+            color: var(--warning);
+        }
+        
+        .status-invalid {
+            background-color: rgba(247, 37, 133, 0.2);
+            color: var(--danger);
+        }
+        
+        /* Login Page Styles */
+        .login-container {
+            max-width: 450px;
+            margin: 5rem auto;
+            padding: 2.5rem;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .login-logo {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .login-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+        
+        .login-subtitle {
+            color: var(--gray);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background-color: var(--light);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 0.875rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 1rem;
+        }
+        
+        .login-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(67, 97, 238, 0.3);
+        }
+        
+        .error-message {
+            color: var(--danger);
+            margin-top: 1rem;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+        }
+        
+        /* Admin Panel Styles */
+        .admin-section {
+            margin-bottom: 2rem;
+        }
+        
+        .qr-generator {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .qr-input-group {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 576px) {
+            .qr-input-group {
+                flex-direction: column;
+            }
+        }
+        
+        .qr-input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: var(--light);
+        }
+        
+        .qr-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .qr-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .qr-preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.25rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 12px;
+            background-color: var(--white);
+            transition: var(--transition);
+        }
+        
+        .qr-preview:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .qr-code-img {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 1rem;
+            object-fit: contain;
+        }
+        
+        .qr-code-value {
+            font-family: monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--gray);
+        }
+        
+        .valid-codes-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: var(--light);
+            border-radius: 8px;
+            border: 1px solid var(--light-gray);
+        }
+        
+        .valid-code-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--light-gray);
+            font-family: monospace;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .valid-code-item:last-child {
+            border-bottom: none;
+        }
+        
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .copy-btn:hover {
+            color: var(--primary-dark);
+        }
+        
+        /* Dashboard Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-title {
+            font-size: 0.875rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-change {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .stat-change.up {
+            color: var(--success);
+        }
+        
+        .stat-change.down {
+            color: var(--danger);
+        }
+        
+        /* Footer */
+        .app-footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--light-gray);
+            color: var(--gray);
+            font-size: 0.875rem;
+        }
+        
+        /* Utility Classes */
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-muted {
+            color: var(--gray);
+        }
+        
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mt-3 { margin-top: 1.5rem; }
+        .mt-4 { margin-top: 2rem; }
+        .mt-5 { margin-top: 3rem; }
+        
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .mb-3 { margin-bottom: 1.5rem; }
+        .mb-4 { margin-bottom: 2rem; }
+        .mb-5 { margin-bottom: 3rem; }
+        
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page (Initially shown) -->
+    <div id="loginPage" class="login-container">
+        <div class="login-logo">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+        <h1 class="login-title">SecureEntry</h1>
+        <p class="login-subtitle">Event Security Verification System</p>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" class="form-input" placeholder="Enter admin username" required>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" class="form-input" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="login-btn">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            <div id="loginError" class="error-message">
+                <i class="fas fa-exclamation-circle"></i> Invalid username or password
+            </div>
+        </form>
+    </div>
+    
+    <!-- Main App (Initially hidden) -->
+    <div id="appContainer" style="display: none;">
+        <div class="container">
+            <header class="app-header">
+                <div class="logo">
+                    <i class="fas fa-shield-alt logo-icon"></i>
+                    <span>SecureEntry</span>
+                </div>
+                <div class="user-info">
+                    <span id="currentTime"></span>
+                    <div class="user-avatar" id="userAvatar">A</div>
+                </div>
+            </header>
+            
+            <div id="verificationApp">
+                <!-- Content will be loaded here -->
+            </div>
+            
+            <footer class="app-footer">
+                <p>SecureEntry Event Security System &copy; 2023</p>
+                <p class="text-muted mt-1">v1.2.0 | Last updated: <span id="currentDate"></span></p>
+            </footer>
+        </div>
+    </div>
+    
+    <script>
+        // App State
+        const appState = {
+            isAdmin: false,
+            currentPage: 'login',
+            scannedCodes: new Set(),
+            validCodes: new Set(),
+            verificationHistory: [],
+            adminCredentials: {
+                username: 'admin',
+                password: 'secure123' // In a real app, use proper authentication
+            },
+            eventInfo: {
+                name: 'Tech Conference 2023',
+                date: 'November 15-17, 2023',
+                location: 'Convention Center, San Francisco'
+            },
+            stats: {
+                totalScans: 0,
+                validEntries: 0,
+                duplicates: 0,
+                invalidCodes: 0
+            }
+        };
+        
+        // DOM Elements
+        const loginPage = document.getElementById('loginPage');
+        const appContainer = document.getElementById('appContainer');
+        const verificationApp = document.getElementById('verificationApp');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const currentTime = document.getElementById('currentTime');
+        const currentDate = document.getElementById('currentDate');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        // Initialize the app
+        function initApp() {
+            updateDateTime();
+            setInterval(updateDateTime, 60000); // Update time every minute
+            
+            renderLoginPage();
+            setupEventListeners();
+            
+            // Set current date in footer
+            const now = new Date();
+            currentDate.textContent = now.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+        
+        // Update current time
+        function updateDateTime() {
+            const now = new Date();
+            currentTime.textContent = now.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            loginForm.addEventListener('submit', handleLogin);
+        }
+        
+        // Handle login form submission
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === appState.adminCredentials.username && 
+                password === appState.adminCredentials.password) {
+                // Successful login
+                appState.isAdmin = true;
+                loginError.style.display = 'none';
+                userAvatar.textContent = username.charAt(0).toUpperCase();
+                showAdminPanel();
+            } else {
+                // Failed login
+                loginError.style.display = 'block';
+                loginForm.classList.add('animate__animated', 'animate__headShake');
+                setTimeout(() => {
+                    loginForm.classList.remove('animate__animated', 'animate__headShake');
+                }, 1000);
+            }
+        }
+        
+        // Show admin panel
+        function showAdminPanel() {
+            loginPage.style.display = 'none';
+            appContainer.style.display = 'block';
+            renderAdminPanel();
+        }
+        
+        // Show verification app
+        function showVerificationApp() {
+            appState.isAdmin = false;
+            renderVerificationApp();
+        }
+        
+        // Render login page
+        function renderLoginPage() {
+            loginPage.style.display = 'block';
+            appContainer.style.display = 'none';
+        }
+        
+        // Render admin panel
+        function renderAdminPanel() {
+            verificationApp.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-tachometer-alt card-title-icon"></i>
+                            Dashboard Overview
+                        </h2>
+                        <span class="text-muted">${appState.eventInfo.date}</span>
+                    </div>
+                    
+                    <div class="stats-container">
+                        <div class="stat-card">
+                            <span class="stat-title">Total Tickets Generated</span>
+                            <span class="stat-value">${appState.validCodes.size}</span>
+                            <span class="stat-change up">
+                                <i class="fas fa-arrow-up"></i> ${Math.floor(appState.validCodes.size / 10)}% from last event
+                            </span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-title">Total Scans</span>
+                            <span class="stat-value">${appState.stats.totalScans}</span>
+                            <span class="stat-change up">
+                                <i class="fas fa-arrow-up"></i> ${Math.floor(appState.stats.totalScans / 5)}% today
+                            </span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-title">Valid Entries</span>
+                            <span class="stat-value">${appState.stats.validEntries}</span>
+                            <span class="stat-change up">
+                                <i class="fas fa-check-circle"></i> ${appState.validCodes.size > 0 ? Math.floor((appState.stats.validEntries / appState.validCodes.size) * 100) : 0}% of tickets
+                            </span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-title">Duplicate Attempts</span>
+                            <span class="stat-value">${appState.stats.duplicates}</span>
+                            <span class="stat-change down">
+                                <i class="fas fa-exclamation-triangle"></i> ${appState.stats.totalScans > 0 ? Math.floor((appState.stats.duplicates / appState.stats.totalScans) * 100) : 0}% of scans
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-qrcode card-title-icon"></i>
+                            QR Code Generator
+                        </h2>
+                        <span class="text-muted">Create tickets for ${appState.eventInfo.name}</span>
+                    </div>
+                    
+                    <div class="qr-generator">
+                        <p>Generate unique QR codes for event attendees. Each code can be scanned only once.</p>
+                        
+                        <div class="qr-input-group">
+                            <input type="number" id="qrCount" class="qr-input" 
+                                   placeholder="Number of QR codes to generate" 
+                                   min="1" max="500" value="20">
+                            <button id="generateQrBtn" class="btn btn-primary">
+                                <i class="fas fa-qrcode"></i> Generate QR Codes
+                            </button>
+                            <button id="bulkDownloadBtn" class="btn btn-success" ${appState.validCodes.size === 0 ? 'disabled' : ''}>
+                                <i class="fas fa-download"></i> Download All
+                            </button>
+                        </div>
+                        
+                        <div class="qr-preview-container" id="qrPreviewContainer">
+                            ${appState.validCodes.size === 0 ? `
+                                <div class="text-center" style="grid-column: 1 / -1; padding: 2rem;">
+                                    <i class="fas fa-qrcode" style="font-size: 3rem; color: var(--light-gray); margin-bottom: 1rem;"></i>
+                                    <p class="text-muted">No QR codes generated yet. Generate some to see them here.</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-ticket-alt card-title-icon"></i>
+                            Valid Ticket Codes
+                        </h2>
+                        <span class="text-muted">${appState.validCodes.size} active tickets</span>
+                    </div>
+                    
+                    <div class="valid-codes-list" id="validCodesList">
+                        ${appState.validCodes.size > 0 ? 
+                            Array.from(appState.validCodes).map(code => `
+                                <div class="valid-code-item">
+                                    <span>${code}</span>
+                                    <button class="copy-btn" data-code="${code}">
+                                        <i class="far fa-copy"></i> Copy
+                                    </button>
+                                </div>
+                            `).join('') : `
+                            <div class="text-center" style="padding: 2rem;">
+                                <i class="fas fa-ticket-alt" style="font-size: 3rem; color: var(--light-gray); margin-bottom: 1rem;"></i>
+                                <p class="text-muted">No valid ticket codes yet. Generate QR codes to create tickets.</p>
+                            </div>
+                        `}
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-history card-title-icon"></i>
+                            Verification History
+                        </h2>
+                        <span class="text-muted">Last 50 scans</span>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Code</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminHistoryBody">
+                                ${appState.verificationHistory.slice(0, 50).map(entry => `
+                                    <tr>
+                                        <td>${entry.time}</td>
+                                        <td>${entry.code}</td>
+                                        <td><span class="status-badge ${getStatusClass(entry.status)}">
+                                            <i class="${getStatusIcon(entry.status)}"></i> ${entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
+                                        </span></td>
+                                        <td>${entry.details}</td>
+                                    </tr>
+                                `).join('')}
+                                ${appState.verificationHistory.length === 0 ? `
+                                    <tr>
+                                        <td colspan="4" class="text-center" style="padding: 2rem;">
+                                            <i class="fas fa-history" style="font-size: 3rem; color: var(--light-gray); margin-bottom: 1rem;"></i>
+                                            <p class="text-muted">No verification history yet. Scan some tickets to see data here.</p>
+                                        </td>
+                                    </tr>
+                                ` : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                    <button id="viewScannerBtn" class="btn btn-primary">
+                        <i class="fas fa-camera"></i> Open Scanner
+                    </button>
+                    <button id="logoutBtn" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            `;
+            
+            // Set up event listeners for admin panel
+            document.getElementById('generateQrBtn').addEventListener('click', generateQRCodes);
+            document.getElementById('bulkDownloadBtn').addEventListener('click', downloadAllQRCodes);
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                renderLoginPage();
+            });
+            document.getElementById('viewScannerBtn').addEventListener('click', showVerificationApp);
+            
+            // Set up copy buttons for valid codes
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const code = this.getAttribute('data-code');
+                    navigator.clipboard.writeText(code).then(() => {
+                        const originalHTML = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(() => {
+                            this.innerHTML = originalHTML;
+                        }, 2000);
+                    });
+                });
+            });
+            
+            // Initialize QR previews if codes exist
+            if (appState.validCodes.size > 0) {
+                updateQRPreviews();
+            }
+        }
+        
+        // Render verification app
+        function renderVerificationApp() {
+            verificationApp.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-user-check card-title-icon"></i>
+                            Attendee Verification
+                        </h2>
+                        <span class="text-muted">${appState.eventInfo.name}</span>
+                    </div>
+                    
+                    <div class="scan-section">
+                        <div class="scan-option">
+                            <h3><i class="fas fa-camera"></i> Camera Scan</h3>
+                            <p class="text-muted">Scan QR codes using your device camera</p>
+                            
+                            <div class="camera-container">
+                                <video id="video" playsinline></video>
+                                <canvas id="canvas"></canvas>
+                                <div class="camera-overlay">
+                                    <div class="scan-box"></div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                <button id="startButton" class="btn btn-primary">
+                                    <i class="fas fa-play"></i> Start Camera
+                                </button>
+                                <button id="stopButton" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-stop"></i> Stop Camera
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="scan-option">
+                            <h3><i class="fas fa-upload"></i> File Upload</h3>
+                            <p class="text-muted">Upload an image containing a QR code</p>
+                            
+                            <label for="file-input">
+                                <div class="upload-container">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <p>Click to upload QR code image</p>
+                                    <p class="text-muted"><small>or drag and drop file here</small></p>
+                                    <input type="file" id="file-input" accept="image/*">
+                                </div>
+                            </label>
+                            <div style="margin-top: 1rem;">
+                                <button id="verifyButton" class="btn btn-primary" disabled>
+                                    <i class="fas fa-check-circle"></i> Verify Upload
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="resultSection" class="result-section">
+                        <div class="result-header">
+                            <div class="result-title">
+                                <i class="fas fa-spinner fa-pulse result-icon"></i>
+                                <span id="resultTitle">Verification Result</span>
+                            </div>
+                            <div class="result-time" id="resultTime"></div>
+                        </div>
+                        <div class="result-details" id="resultDetails"></div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-history card-title-icon"></i>
+                            Verification History
+                        </h2>
+                        <span class="text-muted">Recent scans</span>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Code</th>
+                                    <th>Status</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody">
+                                ${appState.verificationHistory.slice(0, 10).map(entry => `
+                                    <tr>
+                                        <td>${entry.time}</td>
+                                        <td>${entry.code}</td>
+                                        <td><span class="status-badge ${getStatusClass(entry.status)}">
+                                            <i class="${getStatusIcon(entry.status)}"></i> ${entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
+                                        </span></td>
+                                        <td>${entry.details}</td>
+                                    </tr>
+                                `).join('')}
+                                ${appState.verificationHistory.length === 0 ? `
+                                    <tr>
+                                        <td colspan="4" class="text-center" style="padding: 2rem;">
+                                            <i class="fas fa-history" style="font-size: 3rem; color: var(--light-gray); margin-bottom: 1rem;"></i>
+                                            <p class="text-muted">No verification history yet. Scan some tickets to see data here.</p>
+                                        </td>
+                                    </tr>
+                                ` : ''}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; margin-top: 2rem;">
+                    <button id="backToAdminBtn" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Admin
+                    </button>
+                </div>
+            `;
+            
+            setupVerificationApp();
+        }
+        
+        // Setup verification app functionality
+        function setupVerificationApp() {
+            // DOM elements
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const startButton = document.getElementById('startButton');
+            const stopButton = document.getElementById('stopButton');
+            const verifyButton = document.getElementById('verifyButton');
+            const fileInput = document.getElementById('file-input');
+            const resultSection = document.getElementById('resultSection');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDetails = document.getElementById('resultDetails');
+            const resultTime = document.getElementById('resultTime');
+            const historyBody = document.getElementById('historyBody');
+            const backToAdminBtn = document.getElementById('backToAdminBtn');
+            const uploadContainer = document.querySelector('.upload-container');
+            
+            // Variables
+            let stream = null;
+            let scanning = false;
+            let selectedFile = null;
+            
+            // Event listeners
+            startButton.addEventListener('click', startCamera);
+            stopButton.addEventListener('click', stopCamera);
+            verifyButton.addEventListener('click', verifyUpload);
+            fileInput.addEventListener('change', handleFileSelect);
+            backToAdminBtn.addEventListener('click', showAdminPanel);
+            
+            // Drag and drop functionality
+            uploadContainer.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadContainer.style.borderColor = 'var(--primary)';
+                uploadContainer.style.backgroundColor = '#e9ecef';
+            });
+            
+            uploadContainer.addEventListener('dragleave', () => {
+                uploadContainer.style.borderColor = 'var(--gray)';
+                uploadContainer.style.backgroundColor = 'var(--light)';
+            });
+            
+            uploadContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadContainer.style.borderColor = 'var(--gray)';
+                uploadContainer.style.backgroundColor = 'var(--light)';
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect({ target: fileInput });
+                }
+            });
+            
+            // Functions
+            function startCamera() {
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                    .then(function(s) {
+                        stream = s;
+                        video.srcObject = stream;
+                        video.play();
+                        startButton.disabled = true;
+                        stopButton.disabled = false;
+                        scanning = true;
+                        scanFrame();
+                    })
+                    .catch(function(err) {
+                        console.error('Error accessing camera:', err);
+                        showResult('error', 'Camera Error', 'Could not access the camera. Please ensure you have granted camera permissions.');
+                    });
+            }
+            
+            function stopCamera() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    video.srcObject = null;
+                    startButton.disabled = false;
+                    stopButton.disabled = true;
+                    scanning = false;
+                }
+            }
+            
+            function scanFrame() {
+                if (!scanning) return;
+                
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvas.height = video.videoHeight;
+                    canvas.width = video.videoWidth;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: 'dontInvert',
+                    });
+                    
+                    if (code) {
+                        verifyCode(code.data);
+                        scanning = false;
+                        setTimeout(() => {
+                            scanning = true;
+                            scanFrame();
+                        }, 2000); // Pause scanning for 2 seconds after successful scan
+                        return;
+                    }
+                }
+                
+                requestAnimationFrame(scanFrame);
+            }
+            
+            function handleFileSelect(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    selectedFile = file;
+                    verifyButton.disabled = false;
+                    
+                    // Preview the image
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        uploadContainer.innerHTML = `
+                            <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                            <button class="btn btn-sm btn-secondary" id="clearUploadBtn" style="margin-top: 0.5rem;">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        `;
+                        
+                        document.getElementById('clearUploadBtn').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            fileInput.value = '';
+                            uploadContainer.innerHTML = `
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem;"></i>
+                                </div>
+                                <p>Click to upload QR code image</p>
+                                <p class="text-muted"><small>or drag and drop file here</small></p>
+                            `;
+                            verifyButton.disabled = true;
+                            selectedFile = null;
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            
+            function verifyUpload() {
+                if (!selectedFile) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0);
+                        
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: 'dontInvert',
+                        });
+                        
+                        if (code) {
+                            verifyCode(code.data);
+                        } else {
+                            showResult('error', 'Invalid QR Code', 'The uploaded image does not contain a valid QR code.');
+                            addToHistory('N/A', 'invalid', 'No QR code found in image', new Date().toLocaleTimeString());
+                        }
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(selectedFile);
+            }
+            
+            function verifyCode(code) {
+                const isValid = appState.validCodes.has(code);
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                
+                // Update stats
+                appState.stats.totalScans++;
+                
+                if (!isValid) {
+                    showResult('error', 'Invalid Ticket', `The code "${code}" is not a valid event ticket.`);
+                    addToHistory(code, 'invalid', 'Invalid code format', timeString);
+                    appState.stats.invalidCodes++;
+                    return;
+                }
+                
+                // Check for duplicates
+                if (appState.scannedCodes.has(code)) {
+                    showResult('warning', 'Duplicate Entry', `The code "${code}" has already been scanned.`);
+                    addToHistory(code, 'duplicate', 'Previously scanned', timeString);
+                    appState.stats.duplicates++;
+                    return;
+                }
+                
+                // If valid and not duplicate
+                appState.scannedCodes.add(code);
+                showResult('success', 'Valid Ticket', `The code "${code}" is valid and has been registered.`);
+                addToHistory(code, 'valid', 'First scan', timeString);
+                appState.stats.validEntries++;
+                
+                // Play success sound
+                playSound('success');
+            }
+            
+            function playSound(type) {
+                // In a real app, you would play actual sound files
+                console.log(`Playing ${type} sound`);
+            }
+            
+            function showResult(type, title, message) {
+                resultSection.style.display = 'block';
+                resultSection.className = 'result-section';
+                
+                // Set icon based on result type
+                let iconClass;
+                switch (type) {
+                    case 'success':
+                        resultSection.classList.add('result-success');
+                        iconClass = 'fas fa-check-circle';
+                        break;
+                    case 'warning':
+                        resultSection.classList.add('result-warning');
+                        iconClass = 'fas fa-exclamation-triangle';
+                        break;
+                    case 'error':
+                        resultSection.classList.add('result-danger');
+                        iconClass = 'fas fa-times-circle';
+                        break;
+                }
+                
+                resultTitle.innerHTML = `<i class="${iconClass} result-icon"></i> ${title}`;
+                resultDetails.textContent = message;
+                resultTime.textContent = new Date().toLocaleTimeString();
+            }
+            
+            function addToHistory(code, status, details, time) {
+                const entry = {
+                    code,
+                    status,
+                    details,
+                    time
+                };
+                
+                appState.verificationHistory.unshift(entry);
+                
+                // Update history table
+                const historyBody = document.getElementById('historyBody');
+                const adminHistoryBody = document.getElementById('adminHistoryBody');
+                
+                if (historyBody) {
+                    const newRow = createHistoryRow(entry);
+                    historyBody.insertBefore(newRow, historyBody.firstChild);
+                    
+                    // Remove excess rows if more than 10
+                    if (historyBody.children.length > 10) {
+                        historyBody.removeChild(historyBody.lastChild);
+                    }
+                }
+                
+                if (adminHistoryBody) {
+                    const newRow = createHistoryRow(entry);
+                    adminHistoryBody.insertBefore(newRow, adminHistoryBody.firstChild);
+                    
+                    // Remove excess rows if more than 50
+                    if (adminHistoryBody.children.length > 50) {
+                        adminHistoryBody.removeChild(adminHistoryBody.lastChild);
+                    }
+                }
+            }
+            
+            function createHistoryRow(entry) {
+                const row = document.createElement('tr');
+                
+                const timeCell = document.createElement('td');
+                timeCell.textContent = entry.time;
+                
+                const codeCell = document.createElement('td');
+                codeCell.textContent = entry.code;
+                
+                const statusCell = document.createElement('td');
+                const statusBadge = document.createElement('span');
+                statusBadge.className = `status-badge ${getStatusClass(entry.status)}`;
+                statusBadge.innerHTML = `<i class="${getStatusIcon(entry.status)}"></i> ${entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}`;
+                
+                statusCell.appendChild(statusBadge);
+                
+                const detailsCell = document.createElement('td');
+                detailsCell.textContent = entry.details;
+                
+                row.appendChild(timeCell);
+                row.appendChild(codeCell);
+                row.appendChild(statusCell);
+                row.appendChild(detailsCell);
+                
+                return row;
+            }
+        }
+        
+        // Generate QR codes
+        function generateQRCodes() {
+            const countInput = document.getElementById('qrCount');
+            let count = parseInt(countInput.value) || 20;
+            
+            // Validate count
+            if (count < 1) count = 1;
+            if (count > 500) count = 500;
+            countInput.value = count;
+            
+            const qrPreviewContainer = document.getElementById('qrPreviewContainer');
+            const validCodesList = document.getElementById('validCodesList');
+            const bulkDownloadBtn = document.getElementById('bulkDownloadBtn');
+            
+            // Clear previous codes if any
+            appState.validCodes.clear();
+            qrPreviewContainer.innerHTML = '';
+            
+            // Show loading state
+            qrPreviewContainer.innerHTML = `
+                <div class="text-center" style="grid-column: 1 / -1; padding: 2rem;">
+                    <i class="fas fa-spinner fa-pulse" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                    <p class="text-muted">Generating ${count} QR codes...</p>
+                </div>
+            `;
+            
+            // Generate unique codes
+            setTimeout(() => {
+                const codes = [];
+                for (let i = 0; i < count; i++) {
+                    codes.push(generateUniqueCode());
+                }
+                
+                // Add to valid codes
+                codes.forEach(code => appState.validCodes.add(code));
+                
+                // Update UI
+                updateQRPreviews();
+                updateValidCodesList();
+                
+                // Enable bulk download button
+                bulkDownloadBtn.disabled = false;
+                
+                // Update stats
+                updateStatsDisplay();
+                
+                // Show success message
+                showToast(`Successfully generated ${count} QR codes!`, 'success');
+            }, 500);
+        }
+        
+        // Update QR code previews
+        function updateQRPreviews() {
+            const qrPreviewContainer = document.getElementById('qrPreviewContainer');
+            
+            if (appState.validCodes.size === 0) {
+                qrPreviewContainer.innerHTML = `
+                    <div class="text-center" style="grid-column: 1 / -1; padding: 2rem;">
+                        <i class="fas fa-qrcode" style="font-size: 3rem; color: var(--light-gray); margin-bottom: 1rem;"></i>
+                        <p class="text-muted">No QR codes generated yet. Generate some to see them here.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            qrPreviewContainer.innerHTML = '';
+            
+            Array.from(appState.validCodes).forEach(code => {
+                QRCode.toDataURL(code, { width: 150, margin: 1 }, (err, url) => {
+                    if (err) {
+                        console.error('Error generating QR code:', err);
+                        return;
+                    }
+                    
+                    const qrPreview = document.createElement('div');
+                    qrPreview.className = 'qr-preview';
+                    qrPreview.innerHTML = `
+                        <img src="${url}" class="qr-code-img" alt="QR Code">
+                        <div class="qr-code-value">${code}</div>
+                        <div style="display: flex; gap: 0.5rem; width: 100%;">
+                            <button class="btn btn-sm btn-primary download-btn" data-code="${code}" style="flex: 1;">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="btn btn-sm btn-secondary copy-btn" data-code="${code}">
+                                <i class="far fa-copy"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    qrPreviewContainer.appendChild(qrPreview);
+                    
+                    // Add download event listener
+                    qrPreview.querySelector('.download-btn').addEventListener('click', function() {
+                        downloadQRCode(this.getAttribute('data-code'));
+                    });
+                    
+                    // Add copy event listener
+                    qrPreview.querySelector('.copy-btn').addEventListener('click', function() {
+                        const code = this.getAttribute('data-code');
+                        navigator.clipboard.writeText(code).then(() => {
+                            const originalHTML = this.innerHTML;
+                            this.innerHTML = '<i class="fas fa-check"></i>';
+                            setTimeout(() => {
+                                this.innerHTML = originalHTML;
+                            }, 2000);
+                        });
+                    });
+                });
+            });
+        }
+        
+        // Update valid codes list
+        function updateValidCodesList() {
+            const validCodesList = document.getElementById('validCodesList');
+            
+            if (appState.validCodes.size === 0) {
+                validCodesList.innerHTML = `
+                    <div class="text-center" style="padding: 2rem;">
+                        <i class="fas fa-ticket-alt" style="font-size: 3rem; color: var(--light-gray); margin-bottom: 1rem;"></i>
+                        <p class="text-muted">No valid ticket codes yet. Generate QR codes to create tickets.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            validCodesList.innerHTML = Array.from(appState.validCodes).map(code => `
+                <div class="valid-code-item">
+                    <span>${code}</span>
+                    <button class="copy-btn" data-code="${code}">
+                        <i class="far fa-copy"></i> Copy
+                    </button>
+                </div>
+            `).join('');
+            
+            // Set up copy buttons
+            document.querySelectorAll('#validCodesList .copy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const code = this.getAttribute('data-code');
+                    navigator.clipboard.writeText(code).then(() => {
+                        const originalHTML = this.innerHTML;
+                        this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                        setTimeout(() => {
+                            this.innerHTML = originalHTML;
+                        }, 2000);
+                    });
+                });
+            });
+        }
+        
+        // Download all QR codes as ZIP
+        function downloadAllQRCodes() {
+            // In a real app, you would generate a ZIP file with all QR codes
+            // This is a simplified version that prompts to download each one individually
+            
+            if (appState.validCodes.size === 0) {
+                showToast('No QR codes to download', 'warning');
+                return;
+            }
+            
+            if (confirm(`Download ${appState.validCodes.size} QR codes? This may take a moment.`)) {
+                showToast('Preparing QR codes for download...', 'info');
+                
+                // Download each code one by one (simplified)
+                let count = 0;
+                Array.from(appState.validCodes).forEach(code => {
+                    setTimeout(() => {
+                        downloadQRCode(code);
+                        count++;
+                        
+                        if (count === appState.validCodes.size) {
+                            showToast(`Successfully downloaded ${count} QR codes!`, 'success');
+                        }
+                    }, count * 300);
+                });
+            }
+        }
+        
+        // Download single QR code
+        function downloadQRCode(code) {
+            QRCode.toDataURL(code, { width: 300, margin: 2 }, (err, url) => {
+                if (err) {
+                    console.error('Error generating QR code for download:', err);
+                    return;
+                }
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `event-ticket-${code}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+        
+        // Generate unique code
+        function generateUniqueCode() {
+            const prefix = 'EVENT-';
+            const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+            const code = prefix + randomPart;
+            
+            // Ensure uniqueness (though very unlikely to collide with random string)
+            if (appState.validCodes.has(code)) {
+                return generateUniqueCode();
+            }
+            
+            return code;
+        }
+        
+        // Update stats display
+        function updateStatsDisplay() {
+            const statValues = document.querySelectorAll('.stat-value');
+            if (statValues.length > 0) {
+                statValues[0].textContent = appState.validCodes.size;
+                statValues[1].textContent = appState.stats.totalScans;
+                statValues[2].textContent = appState.stats.validEntries;
+                statValues[3].textContent = appState.stats.duplicates;
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message, type) {
+            // In a real app, you would use a proper toast notification library
+            console.log(`${type.toUpperCase()}: ${message}`);
+            alert(`${type.toUpperCase()}: ${message}`);
+        }
+        
+        // Get status class for styling
+        function getStatusClass(status) {
+            switch (status) {
+                case 'valid': return 'status-valid';
+                case 'duplicate': return 'status-duplicate';
+                case 'invalid': return 'status-invalid';
+                default: return '';
+            }
+        }
+        
+        // Get status icon
+        function getStatusIcon(status) {
+            switch (status) {
+                case 'valid': return 'fas fa-check-circle';
+                case 'duplicate': return 'fas fa-exclamation-triangle';
+                case 'invalid': return 'fas fa-times-circle';
+                default: return 'fas fa-question-circle';
+            }
+        }
+        
+        // Initialize the app
+        initApp();
+    </script>
+</body>
+</html>
